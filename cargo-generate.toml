@@ -1,0 +1,6 @@
+[template]
+
+[hooks]
+pre = ["pre-script.rhai"]
+
+[placeholders]
