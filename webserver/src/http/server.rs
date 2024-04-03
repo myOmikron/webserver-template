@@ -15,6 +15,7 @@ use signal_hook_tokio::Signals;
 use swaggapi::SwaggerUi;
 use thiserror::Error;
 use tokio::net::TcpListener;
+use tower::ServiceBuilder;
 use tower_http::trace::TraceLayer;
 use tower_sessions::cookie::SameSite;
 use tower_sessions::Expiry;
@@ -42,11 +43,14 @@ pub async fn run(config: &Config) -> Result<(), StartServerError> {
     let router = Router::new()
         .merge(frontend_handler::get_routes(oidc_client))
         .merge(SwaggerUi::with_path("/docs").page("Frontend API", &FRONTEND_API_V1))
-        .layer(TraceLayer::new_for_http())
         .layer(
-            SessionManagerLayer::new(RormStore::<models::Session>::new(GLOBAL.db.clone()))
-                .with_expiry(Expiry::OnInactivity(time::Duration::hours(24)))
-                .with_same_site(SameSite::Lax),
+            ServiceBuilder::new()
+                .layer(TraceLayer::new_for_http())
+                .layer(
+                    SessionManagerLayer::new(RormStore::<models::Session>::new(GLOBAL.db.clone()))
+                        .with_expiry(Expiry::OnInactivity(time::Duration::hours(24)))
+                        .with_same_site(SameSite::Lax),
+                ),
         );
 
     let socket_addr = SocketAddr::new(

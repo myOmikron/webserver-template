@@ -23,7 +23,7 @@ use crate::models;
 use crate::models::LocalUser;
 
 /// Use the local authentication for logging in
-#[post("/auth/login")]
+#[post("/login")]
 #[instrument(skip(session))]
 pub async fn login(
     session: Session,
@@ -67,7 +67,7 @@ pub async fn login(
 }
 
 /// Drop the current session and logg-out
-#[post("/auth/logout")]
+#[post("/logout")]
 #[instrument(skip_all)]
 pub async fn logout(session: Session) -> ApiResult<()> {
     session.flush().await?;
