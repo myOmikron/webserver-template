@@ -9,11 +9,13 @@ use swaggapi::as_responses::simple_responses;
 use swaggapi::as_responses::AsResponses;
 use swaggapi::as_responses::SimpleResponse;
 use swaggapi::internals::SchemaGenerator;
+use swaggapi::re_exports::mime;
 use swaggapi::re_exports::openapiv3;
 use swaggapi::re_exports::openapiv3::MediaType;
 use swaggapi::re_exports::openapiv3::Responses;
 use thiserror::Error;
 
+use crate::http::common::schemas::ApiErrorResponse;
 use crate::http::common::schemas::ApiStatusCode;
 
 /// A type alias that includes the ApiError
@@ -62,7 +64,7 @@ impl IntoResponse for ApiError {
             } else {
                 StatusCode::INTERNAL_SERVER_ERROR
             },
-            Json(crate::http::common::schemas::ApiErrorResponse {
+            Json(ApiErrorResponse {
                 status_code,
                 message,
             }),
@@ -75,20 +77,20 @@ impl IntoResponse for ApiError {
 impl AsResponses for ApiError {
     fn responses(gen: &mut SchemaGenerator) -> Responses {
         let media_type = Some(MediaType {
-            schema: Some(gen.generate::<crate::http::common::schemas::ApiErrorResponse>()),
+            schema: Some(gen.generate::<ApiErrorResponse>()),
             ..Default::default()
         });
 
         simple_responses([
             SimpleResponse {
                 status_code: openapiv3::StatusCode::Code(400),
-                mime_type: "application/json".parse().unwrap(),
+                mime_type: mime::APPLICATION_JSON,
                 description: "Client side error".to_string(),
                 media_type: media_type.clone(),
             },
             SimpleResponse {
                 status_code: openapiv3::StatusCode::Code(500),
-                mime_type: "application/json".parse().unwrap(),
+                mime_type: mime::APPLICATION_JSON,
                 description: "Server side error".to_string(),
                 media_type,
             },
