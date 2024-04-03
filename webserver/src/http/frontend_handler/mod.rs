@@ -9,7 +9,9 @@ use swaggapi::SwaggapiPageBuilder;
 
 use crate::utils::oidc::OidcClient;
 
+pub mod auth;
 pub mod oidc;
+pub mod users;
 
 /// The Swagger definition for the frontend api v1
 pub static FRONTEND_API_V1: SwaggapiPageBuilder =
@@ -25,5 +27,10 @@ pub fn get_routes(oidc_client: OidcClient) -> Router {
                 .route("/finish-login", get(oidc::handler::finish_login)),
         )
         .with_state(oidc_client)
-        .merge(ApiContext::new("/api/frontend/v1"))
+        .merge(
+            ApiContext::new("/api/frontend/v1")
+                .handler(auth::handler::login)
+                .handler(auth::handler::logout)
+                .handler(users::handler::get_me),
+        )
 }

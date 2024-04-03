@@ -30,8 +30,12 @@ pub enum ApiError {
     InternalServerError,
     #[error("Error occurred while accessing the session: {0}")]
     SessionError(#[from] tower_sessions::session::Error),
+    #[error("Did not found expected data in session")]
+    SessionCorrupt,
     #[error("Database error occurred: {0}")]
     Database(#[from] rorm::Error),
+    #[error("Parsing the hash failed: {0}")]
+    HashParsingFailed(#[from] argon2::password_hash::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -43,7 +47,11 @@ impl IntoResponse for ApiError {
             ApiError::Unauthenticated => {
                 (ApiStatusCode::Unauthenticated, UNAUTHENTICATED.to_string())
             }
-            ApiError::InternalServerError | ApiError::SessionError(_) | ApiError::Database(_) => {
+            ApiError::InternalServerError
+            | ApiError::SessionError(_)
+            | ApiError::SessionCorrupt
+            | ApiError::Database(_)
+            | ApiError::HashParsingFailed(_) => {
                 (ApiStatusCode::InternalServerError, INTERNAL.to_string())
             }
         };
