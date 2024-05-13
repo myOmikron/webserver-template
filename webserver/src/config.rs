@@ -55,6 +55,7 @@ impl From<DBConfig> for DatabaseDriver {
 
 /// OIDC related configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct OpenIdConnect {
     /// The client id of the server
     pub client_id: ClientId,
