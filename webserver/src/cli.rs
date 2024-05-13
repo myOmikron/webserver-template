@@ -1,10 +1,10 @@
 use clap::Parser;
 use clap::Subcommand;
 
-/// The cli of the questionnaire
+/// The cli
 #[derive(Parser)]
 pub struct Cli {
-    /// The path to the config file of questionnaire
+    /// The path to the config file
     #[clap(long, default_value_t = String::from("/etc/{{crate-name}}/config.toml"))]
     pub config_path: String,
 
