@@ -2,3 +2,4 @@
 //! within the webserver are defined here
 
 pub mod oidc;
+pub mod schemars;

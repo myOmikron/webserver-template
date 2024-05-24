@@ -2,7 +2,7 @@
 //!
 //! This included the router as well as the handlers and schemas
 
-use axum::routing::get;
+use axum::Extension;
 use axum::Router;
 use swaggapi::ApiContext;
 use swaggapi::SwaggapiPageBuilder;
@@ -21,23 +21,26 @@ pub static FRONTEND_API_V1: SwaggapiPageBuilder =
 
 /// Create the router for the Frontend API
 pub fn get_routes(oidc_client: OidcClient) -> Router {
-    Router::new()
+    ApiContext::new()
         .nest(
             "/api/frontend/v1/oidc",
-            Router::new()
-                .route("/login", get(oidc::handler::login))
-                .route("/finish-login", get(oidc::handler::finish_login)),
+            ApiContext::new()
+                .handler(oidc::handler::login)
+                .handler(oidc::handler::finish_login)
+                .route_layer(ServiceBuilder::new().layer(Extension(oidc_client))),
         )
-        .with_state(oidc_client)
-        .merge(
-            ApiContext::new("/api/frontend/v1/auth")
+        .nest(
+            "/api/frontend/v1/auth",
+            ApiContext::new()
                 .handler(auth::handler::login)
                 .route_layer(ServiceBuilder::new().concurrency_limit(10)),
         )
-        .merge(
-            ApiContext::new("/api/frontend/v1")
+        .nest(
+            "/api/frontend/v1",
+            ApiContext::new()
                 .handler(users::handler::get_me)
                 .handler(auth::handler::logout)
                 .layer(ServiceBuilder::new().layer(axum::middleware::from_fn(auth_required))),
         )
+        .into()
 }

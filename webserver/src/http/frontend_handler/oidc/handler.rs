@@ -1,8 +1,8 @@
 //! The handlers for authentication via openid-connect
 
 use axum::extract::Query;
-use axum::extract::State;
 use axum::response::Redirect;
+use axum::Extension;
 use openidconnect::core::CoreAuthenticationFlow;
 use openidconnect::reqwest::async_http_client;
 use openidconnect::AccessTokenHash;
@@ -17,6 +17,7 @@ use rorm::prelude::ForeignModelByField;
 use rorm::query;
 use rorm::FieldAccess;
 use rorm::Model;
+use swaggapi::get;
 use tower_sessions::Session;
 use tracing::debug;
 use tracing::instrument;
@@ -35,8 +36,9 @@ use crate::models::User;
 use crate::utils::oidc::OidcClient;
 
 /// Handler for OIDC's login endpoint
+#[get("/login")]
 #[instrument(skip_all, ret, level = "debug")]
-pub async fn login(session: Session, client: State<OidcClient>) -> ApiResult<Redirect> {
+pub async fn login(session: Session, client: Extension<OidcClient>) -> ApiResult<Redirect> {
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
@@ -66,9 +68,10 @@ pub async fn login(session: Session, client: State<OidcClient>) -> ApiResult<Red
     Ok(Redirect::temporary(auth_url.as_str()))
 }
 /// Handler for the OIDC endpoint the user will be redirected to from the OIDC provider
+#[get("/finish-login")]
 #[instrument(skip_all, ret, level = "debug")]
 pub async fn finish_login(
-    client: State<OidcClient>,
+    client: Extension<OidcClient>,
     Query(AuthRequest { code, state }): Query<AuthRequest>,
     session: Session,
 ) -> ApiResult<Redirect> {
@@ -84,14 +87,14 @@ pub async fn finish_login(
     };
 
     // Check the states to match
-    if state.secret() != csrf_token.secret() {
+    if state.0.secret() != csrf_token.secret() {
         debug!("Secret state is invalid");
         return Err(ApiError::Unauthenticated);
     }
 
     // Exchange the code with a token.
     let token = client
-        .exchange_code(code)
+        .exchange_code(code.0)
         .set_pkce_verifier(pkce_code_verifier)
         .request_async(async_http_client)
         .await

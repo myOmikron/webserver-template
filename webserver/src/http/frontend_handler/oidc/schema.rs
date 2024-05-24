@@ -6,8 +6,11 @@ use openidconnect::AuthorizationCode;
 use openidconnect::CsrfToken;
 use openidconnect::Nonce;
 use openidconnect::PkceCodeVerifier;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Serialize;
+
+use crate::utils::schemars::SchemaString;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[allow(missing_docs)]
@@ -17,11 +20,11 @@ pub struct AuthState {
     pub nonce: Nonce,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, JsonSchema)]
 #[allow(missing_docs)]
 pub struct AuthRequest {
-    pub code: AuthorizationCode,
-    pub state: CsrfToken,
+    pub code: SchemaString<AuthorizationCode>,
+    pub state: SchemaString<CsrfToken>,
 }
 
 /// Data the [`super::handler::finish_login`] handler will store in the user's session
