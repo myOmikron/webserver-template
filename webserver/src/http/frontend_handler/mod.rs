@@ -4,12 +4,12 @@
 
 use axum::Extension;
 use axum::Router;
+use openidconnect::core::CoreClient;
 use swaggapi::ApiContext;
 use swaggapi::SwaggapiPageBuilder;
 use tower::ServiceBuilder;
 
 use crate::http::middlewares::auth_required::auth_required;
-use crate::utils::oidc::OidcClient;
 
 pub mod auth;
 pub mod oidc;
@@ -20,7 +20,7 @@ pub static FRONTEND_API_V1: SwaggapiPageBuilder =
     SwaggapiPageBuilder::new().filename("frontend_v1.json");
 
 /// Create the router for the Frontend API
-pub fn get_routes(oidc_client: Option<OidcClient>) -> Router {
+pub fn get_routes(oidc_client: Option<CoreClient>) -> Router {
     let mut api_context = ApiContext::new();
 
     if let Some(oidc_client) = oidc_client {

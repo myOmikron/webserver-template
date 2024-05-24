@@ -8,7 +8,8 @@ use std::str::FromStr;
 
 use axum::Router;
 use futures::StreamExt;
-use openidconnect::reqwest::HttpClientError;
+use openidconnect::core::{CoreClient, CoreProviderMetadata};
+use openidconnect::reqwest::{async_http_client, HttpClientError};
 use openidconnect::DiscoveryError;
 use signal_hook::consts::TERM_SIGNALS;
 use signal_hook_tokio::Signals;
@@ -32,15 +33,21 @@ use crate::global::GLOBAL;
 use crate::http::frontend_handler;
 use crate::http::frontend_handler::FRONTEND_API_V1;
 use crate::models;
-use crate::utils::oidc::OidcClient;
 
 /// Start the http server
 #[instrument(skip_all, ret)]
 pub async fn run(config: &Config) -> Result<(), StartServerError> {
     let oidc_client = if let Some(config) = config.openid_connect.clone() {
-        let oidc_client = OidcClient::discover(config).await?;
+        let provider_metadata =
+            CoreProviderMetadata::discover_async(config.discover_url, async_http_client).await?;
+        let client = CoreClient::from_provider_metadata(
+            provider_metadata,
+            config.client_id,
+            Some(config.client_secret),
+        )
+        .set_redirect_uri(config.redirect_url);
         info!("OIDC connected successfully!");
-        Some(oidc_client)
+        Some(client)
     } else {
         info!("OIDC is disabled");
         None
