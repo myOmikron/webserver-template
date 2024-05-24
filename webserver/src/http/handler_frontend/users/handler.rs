@@ -6,7 +6,7 @@ use tracing::instrument;
 
 use crate::http::common::errors::ApiResult;
 use crate::http::extractors::session_user::SessionUser;
-use crate::http::frontend_handler::users::schema::FullUser;
+use crate::http::handler_frontend::users::schema::FullUser;
 
 /// Retrieve the currently logged-in user
 #[get("/users/me")]

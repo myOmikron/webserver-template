@@ -18,7 +18,7 @@ use tracing::instrument;
 use crate::global::GLOBAL;
 use crate::http::common::errors::ApiError;
 use crate::http::common::errors::ApiResult;
-use crate::http::frontend_handler::auth::schema::LoginRequest;
+use crate::http::handler_frontend::auth::schema::LoginRequest;
 use crate::models;
 use crate::models::LocalUser;
 

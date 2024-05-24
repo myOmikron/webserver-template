@@ -2,7 +2,7 @@
 
 pub mod common;
 pub mod extractors;
-pub mod frontend_handler;
+pub mod handler_frontend;
 pub mod middlewares;
 pub mod server;
 

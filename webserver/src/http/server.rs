@@ -8,11 +8,14 @@ use std::str::FromStr;
 
 use axum::Router;
 use futures::StreamExt;
-use openidconnect::core::{CoreClient, CoreProviderMetadata};
-use openidconnect::reqwest::{async_http_client, HttpClientError};
+use openidconnect::core::CoreClient;
+use openidconnect::core::CoreProviderMetadata;
+use openidconnect::reqwest::async_http_client;
+use openidconnect::reqwest::HttpClientError;
 use openidconnect::DiscoveryError;
 use signal_hook::consts::TERM_SIGNALS;
 use signal_hook_tokio::Signals;
+use swaggapi::ApiContext;
 use swaggapi::SwaggerUi;
 use thiserror::Error;
 use tokio::net::TcpListener;
@@ -30,8 +33,8 @@ use tracing::Instrument;
 
 use crate::config::Config;
 use crate::global::GLOBAL;
-use crate::http::frontend_handler;
-use crate::http::frontend_handler::FRONTEND_API_V1;
+use crate::http::handler_frontend;
+use crate::http::handler_frontend::FRONTEND_API_V1;
 use crate::models;
 
 /// Start the http server
@@ -54,7 +57,7 @@ pub async fn run(config: &Config) -> Result<(), StartServerError> {
     };
 
     let router = Router::new()
-        .merge(frontend_handler::get_routes(oidc_client))
+        .merge(ApiContext::new().nest("/api/frontend", handler_frontend::initialize(oidc_client)))
         .merge(SwaggerUi::with_path("/docs").page("Frontend API", &FRONTEND_API_V1))
         .layer(
             ServiceBuilder::new()
