@@ -78,7 +78,7 @@ pub struct Config {
     /// Database configuration
     pub database: DBConfig,
     /// The config for oidc
-    pub openid_connect: OpenIdConnect,
+    pub openid_connect: Option<OpenIdConnect>,
 }
 
 /// All errors that can occur when parsing a configuration file

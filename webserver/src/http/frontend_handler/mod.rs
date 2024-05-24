@@ -20,15 +20,20 @@ pub static FRONTEND_API_V1: SwaggapiPageBuilder =
     SwaggapiPageBuilder::new().filename("frontend_v1.json");
 
 /// Create the router for the Frontend API
-pub fn get_routes(oidc_client: OidcClient) -> Router {
-    ApiContext::new()
-        .nest(
+pub fn get_routes(oidc_client: Option<OidcClient>) -> Router {
+    let mut api_context = ApiContext::new();
+
+    if let Some(oidc_client) = oidc_client {
+        api_context = api_context.nest(
             "/api/frontend/v1/oidc",
             ApiContext::new()
                 .handler(oidc::handler::login)
                 .handler(oidc::handler::finish_login)
                 .route_layer(ServiceBuilder::new().layer(Extension(oidc_client))),
-        )
+        );
+    }
+
+    api_context
         .nest(
             "/api/frontend/v1/auth",
             ApiContext::new()

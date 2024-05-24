@@ -37,8 +37,14 @@ use crate::utils::oidc::OidcClient;
 /// Start the http server
 #[instrument(skip_all, ret)]
 pub async fn run(config: &Config) -> Result<(), StartServerError> {
-    let oidc_client = OidcClient::discover(config.openid_connect.clone()).await?;
-    info!("OIDC connected successfully!");
+    let oidc_client = if let Some(config) = config.openid_connect.clone() {
+        let oidc_client = OidcClient::discover(config).await?;
+        info!("OIDC connected successfully!");
+        Some(oidc_client)
+    } else {
+        info!("OIDC is disabled");
+        None
+    };
 
     let router = Router::new()
         .merge(frontend_handler::get_routes(oidc_client))
