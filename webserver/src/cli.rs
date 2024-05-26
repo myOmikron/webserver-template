@@ -23,4 +23,10 @@ pub enum Command {
         /// The directory where the migration files are located in
         migrations_dir: String,
     },
+    /// Create new migrations
+    #[cfg(debug_assertions)]
+    MakeMigrations {
+        /// The directory where the migration files are located in
+        migrations_dir: String,
+    },
 }
