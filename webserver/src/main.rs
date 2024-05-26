@@ -7,8 +7,6 @@
 )]
 
 use std::env;
-use std::fs::File;
-use std::io::Write;
 
 use clap::Parser;
 use rorm::cli as rorm_cli;
@@ -62,9 +60,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Command::Start => start(&config).await?,
         #[cfg(debug_assertions)]
         Command::MakeMigrations { migrations_dir } => {
+            use std::io::Write;
+
             const MODELS: &str = ".models.json";
 
-            let mut file = File::create(MODELS)?;
+            let mut file = std::fs::File::create(MODELS)?;
             rorm::write_models(&mut file)?;
             file.flush()?;
 
