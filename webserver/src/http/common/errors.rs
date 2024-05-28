@@ -59,7 +59,7 @@ impl IntoResponse for ApiError {
         };
 
         let res = (
-            if status_code as u16 >= 2000 {
+            if (status_code as u16) < 2000 {
                 StatusCode::BAD_REQUEST
             } else {
                 StatusCode::INTERNAL_SERVER_ERROR
