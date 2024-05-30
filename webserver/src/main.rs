@@ -1,10 +1,6 @@
 //! # {{project-name}}
 
 #![warn(missing_docs, clippy::unwrap_used, clippy::expect_used)]
-#![cfg_attr(
-    feature = "rorm-main",
-    allow(dead_code, unused_variables, unused_imports)
-)]
 
 use std::env;
 
@@ -44,7 +40,6 @@ async fn start(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[rorm::rorm_main]
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if env::var("RUST_LOG").is_err() {
