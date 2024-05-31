@@ -46,6 +46,9 @@ thiserror = { version = "~1" }
 tracing = { version = "~0.1" }
 tracing-subscriber = { version = "~0.3", features = ["tracing-log"] }
 
+# RNG
+rand = { version = "~0.8" }
+
 # ORM
 rorm = { version = "~0.6", default-features = false, features = ["tokio", "postgres-only", "cli", "uuid"] }
 

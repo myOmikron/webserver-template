@@ -20,11 +20,23 @@ import { mapValues } from '../runtime';
  */
 export interface FullUser {
     /**
+     * The point in time the user was created
+     * @type {Date}
+     * @memberof FullUser
+     */
+    createdAt: Date;
+    /**
      * Used for displaying purposes
      * @type {string}
      * @memberof FullUser
      */
     displayName: string;
+    /**
+     * The last point in time the user has signed in
+     * @type {Date}
+     * @memberof FullUser
+     */
+    lastLogin?: Date;
     /**
      * The identifier of the user
      * @type {string}
@@ -37,6 +49,7 @@ export interface FullUser {
  * Check if a given object implements the FullUser interface.
  */
 export function instanceOfFullUser(value: object): value is FullUser {
+    if (!('createdAt' in value) || value['createdAt'] === undefined) return false;
     if (!('displayName' in value) || value['displayName'] === undefined) return false;
     if (!('uuid' in value) || value['uuid'] === undefined) return false;
     return true;
@@ -52,7 +65,9 @@ export function FullUserFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
     }
     return {
         
+        'createdAt': (new Date(json['created_at'])),
         'displayName': json['display_name'],
+        'lastLogin': json['last_login'] == null ? undefined : (new Date(json['last_login'])),
         'uuid': json['uuid'],
     };
 }
@@ -63,7 +78,9 @@ export function FullUserToJSON(value?: FullUser | null): any {
     }
     return {
         
+        'created_at': ((value['createdAt']).toISOString()),
         'display_name': value['displayName'],
+        'last_login': value['lastLogin'] == null ? undefined : ((value['lastLogin'] as any).toISOString()),
         'uuid': value['uuid'],
     };
 }

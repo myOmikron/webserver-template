@@ -29,4 +29,6 @@ pub enum Command {
         /// The directory where the migration files are located in
         migrations_dir: String,
     },
+    /// Create a local user
+    CreateUser,
 }

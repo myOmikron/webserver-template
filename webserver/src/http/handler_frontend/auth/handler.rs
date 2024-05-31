@@ -11,6 +11,7 @@ use rorm::update;
 use rorm::FieldAccess;
 use rorm::Model;
 use swaggapi::post;
+use time::OffsetDateTime;
 use tower_sessions::Session;
 use tracing::error;
 use tracing::instrument;
@@ -21,6 +22,7 @@ use crate::http::common::errors::ApiResult;
 use crate::http::handler_frontend::auth::schema::LoginRequest;
 use crate::models;
 use crate::models::LocalUser;
+use crate::models::User;
 
 /// Use the local authentication for logging in
 #[post("/login")]
@@ -59,6 +61,11 @@ pub async fn login(
             Some(ForeignModelByField::Key(*user.user.key())),
         )
         .exec()
+        .await?;
+
+    update!(&mut tx, User)
+        .condition(User::F.uuid.equals(*user.user.key()))
+        .set(User::F.last_login, Some(OffsetDateTime::now_utc()))
         .await?;
 
     tx.commit().await?;

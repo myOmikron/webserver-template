@@ -2,7 +2,12 @@
 
 use rorm::prelude::ForeignModel;
 use rorm::Model;
+use time::OffsetDateTime;
 use uuid::Uuid;
+
+pub use crate::models::user::impls::UserInsert;
+
+mod impls;
 
 /// The representation of a user
 #[derive(Model)]
@@ -14,6 +19,13 @@ pub struct User {
     /// The name that is used for displaying purposes
     #[rorm(max_length = 255)]
     pub display_name: String,
+
+    /// The point in time the user signed in the last time
+    pub last_login: Option<OffsetDateTime>,
+
+    /// The point in time the user was created
+    #[rorm(auto_create_time)]
+    pub created_at: OffsetDateTime,
 }
 
 /// A user that is identified though an IDM server

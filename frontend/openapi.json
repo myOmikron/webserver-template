@@ -281,9 +281,22 @@
                 "description": "The full representation for the user",
                 "type": "object",
                 "properties": {
+                    "created_at": {
+                        "example": "1970-01-01T00:00:00.0Z",
+                        "description": "The point in time the user was created",
+                        "type": "string",
+                        "format": "date-time"
+                    },
                     "display_name": {
                         "description": "Used for displaying purposes",
                         "type": "string"
+                    },
+                    "last_login": {
+                        "example": "1970-01-01T00:00:00.0Z",
+                        "description": "The last point in time the user has signed in",
+                        "nullable": true,
+                        "type": "string",
+                        "format": "date-time"
                     },
                     "uuid": {
                         "description": "The identifier of the user",
@@ -292,6 +305,7 @@
                     }
                 },
                 "required": [
+                    "created_at",
                     "display_name",
                     "uuid"
                 ]

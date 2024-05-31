@@ -7,6 +7,7 @@ import {
 } from "./generated";
 import { Err, Ok, Result } from "../utils/result";
 import CONSOLE from "../utils/console";
+import { ApiError, parseError, StatusCode } from "./error";
 
 /** Database id i.e. and u32 */
 export type ID = number;
@@ -33,7 +34,6 @@ export const Api = {
                     },
                 }),
             ),
-        logout: () => handleError(authApi.logout()),
     },
     users: {
         getMe: () => handleError(usersApi.getMe()),
