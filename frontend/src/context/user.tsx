@@ -24,6 +24,8 @@ const USER_CONTEXT = React.createContext<UserContext>({
     user: {
         displayName: "",
         uuid: "",
+        createdAt: new Date(),
+        lastLogin: undefined,
     },
     reset: () => {},
 });
