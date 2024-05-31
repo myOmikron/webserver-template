@@ -1,8 +1,11 @@
-import {createBrowserRouter, createRoutesFromElements, Route} from "react-router-dom";
+import {
+    createBrowserRouter,
+    createRoutesFromElements,
+    Route,
+} from "react-router-dom";
 import React from "react";
-import Menu from "./views/menu";
+import Menu from "./views/menu/menu";
 import Error from "./views/error";
-
 
 /**
  * An element in the router
@@ -31,8 +34,10 @@ export const ROUTER = {
     HOME: new PathElement("/", <div></div>),
 };
 
-export const router = createBrowserRouter(createRoutesFromElements(
-    <Route element={<Menu/>} errorElement={<Error/>}>
-        {Object.values(ROUTER).map((x) => x.getRoute())}
-    </Route>
-));
+export const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route element={<Menu />} errorElement={<Error />}>
+            {Object.values(ROUTER).map((x) => x.getRoute())}
+        </Route>,
+    ),
+);
