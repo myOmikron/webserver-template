@@ -14,6 +14,7 @@ use tracing::instrument;
 use crate::cli::Cli;
 use crate::cli::Command;
 use crate::config::Config;
+use crate::global::ws::GlobalWs;
 use crate::global::GlobalEntities;
 use crate::global::GLOBAL;
 
@@ -31,8 +32,10 @@ async fn start(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     conf.disable_logging = Some(true);
     let db = Database::connect(conf).await?;
 
+    let ws = GlobalWs::new();
+
     // Initialize Globals
-    GLOBAL.init(GlobalEntities { db });
+    GLOBAL.init(GlobalEntities { db, ws });
 
     // Start the webserver
     http::server::run(config).await?;

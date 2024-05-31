@@ -16,6 +16,7 @@ use openidconnect::DiscoveryError;
 use signal_hook::consts::TERM_SIGNALS;
 use signal_hook_tokio::Signals;
 use swaggapi::ApiContext;
+use swaggapi::SwaggapiPage;
 use swaggapi::SwaggerUi;
 use thiserror::Error;
 use tokio::net::TcpListener;
@@ -34,6 +35,8 @@ use tracing::Instrument;
 use crate::config::Config;
 use crate::global::GLOBAL;
 use crate::http::handler_frontend;
+use crate::http::handler_frontend::ws::schema::WsClientMsg;
+use crate::http::handler_frontend::ws::schema::WsServerMsg;
 use crate::http::handler_frontend::FRONTEND_API_V1;
 use crate::models;
 
@@ -56,9 +59,21 @@ pub async fn run(config: &Config) -> Result<(), StartServerError> {
         None
     };
 
+    // Register models that are not used in handlers
+    (&FRONTEND_API_V1)
+        .add_schema::<WsServerMsg>()
+        .add_schema::<WsClientMsg>();
+
+    let mut swaggui = SwaggerUi::without_everything().page("Frontend", &FRONTEND_API_V1);
+    swaggui.path = "/docs";
+
     let router = Router::new()
-        .merge(ApiContext::new().nest("/api/frontend", handler_frontend::initialize(oidc_client)))
-        .merge(SwaggerUi::with_path("/docs").page("Frontend API", &FRONTEND_API_V1))
+        .merge(
+            ApiContext::new()
+                .page(&FRONTEND_API_V1)
+                .nest("/api/frontend", handler_frontend::initialize(oidc_client)),
+        )
+        .merge(swaggui)
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())

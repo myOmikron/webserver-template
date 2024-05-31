@@ -5,6 +5,10 @@ use std::sync::OnceLock;
 
 use rorm::Database;
 
+use crate::global::ws::GlobalWs;
+
+pub mod ws;
+
 /// Set of global managers and handles
 pub static GLOBAL: GlobalOnceCell<GlobalEntities> = GlobalOnceCell::new();
 
@@ -12,6 +16,8 @@ pub static GLOBAL: GlobalOnceCell<GlobalEntities> = GlobalOnceCell::new();
 pub struct GlobalEntities {
     /// The database
     pub db: Database,
+    /// The global websocket manager
+    pub ws: GlobalWs,
 }
 
 /// Simple [`OnceLock`] which panics in case of error.

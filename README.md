@@ -20,6 +20,8 @@ To initialize the frontend run:
 cd frontend/ && npm install
 ```
 
+Also set the URL in `frontend/scripts/gen-api.sh` from which the `openapi.json` can be downloaded.
+
 ## Backend
 
 To initialize the backend run:
@@ -27,3 +29,4 @@ To initialize the backend run:
 ```bash
 cargo build -p webserver
 ```
+

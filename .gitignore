@@ -3,3 +3,4 @@ target/
 Cargo.lock
 .models.json
 node_modules/
+config.toml

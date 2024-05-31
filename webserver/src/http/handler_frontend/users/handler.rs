@@ -9,7 +9,7 @@ use crate::http::extractors::session_user::SessionUser;
 use crate::http::handler_frontend::users::schema::FullUser;
 
 /// Retrieve the currently logged-in user
-#[get("/users/me")]
+#[get("/me")]
 #[instrument(skip_all)]
 pub async fn get_me(SessionUser(user): SessionUser) -> ApiResult<Json<FullUser>> {
     Ok(Json(FullUser {

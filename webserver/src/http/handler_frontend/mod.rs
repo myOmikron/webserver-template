@@ -14,20 +14,23 @@ use crate::http::middlewares::auth_required::auth_required;
 pub mod auth;
 pub mod oidc;
 pub mod users;
+pub mod ws;
 
-/// The Swagger definition for the frontend api v1
-pub static FRONTEND_API_V1: SwaggapiPageBuilder =
-    SwaggapiPageBuilder::new().filename("frontend_v1.json");
+/// The swagger page for the frontend
+pub static FRONTEND_API_V1: SwaggapiPageBuilder = SwaggapiPageBuilder::new()
+    .title("Frontend")
+    .filename("frontend.json");
 
 /// Create the router for the Frontend API
 pub fn initialize(oidc_client: Option<CoreClient>) -> ApiContext<Router> {
-    let oidc_context = if let Some(oidc_client) = oidc_client {
-        ApiContext::new()
-            .handler(oidc::handler::login)
-            .handler(oidc::handler::finish_login)
-            .route_layer(ServiceBuilder::new().layer(Extension(oidc_client)))
-    } else {
-        ApiContext::new()
+    let mut oidc_context = ApiContext::new()
+        .tag("oidc")
+        .handler(oidc::handler::start_auth)
+        .handler(oidc::handler::finish_auth);
+
+    if let Some(oidc_client) = oidc_client {
+        oidc_context =
+            oidc_context.route_layer(ServiceBuilder::new().layer(Extension(oidc_client)));
     };
 
     ApiContext::new().nest(
@@ -37,13 +40,24 @@ pub fn initialize(oidc_client: Option<CoreClient>) -> ApiContext<Router> {
             .nest(
                 "/auth",
                 ApiContext::new()
+                    .tag("auth")
                     .handler(auth::handler::login)
-                    .route_layer(ServiceBuilder::new().concurrency_limit(10)),
+                    .route_layer(ServiceBuilder::new().concurrency_limit(10))
+                    .handler(auth::handler::logout),
             )
             .merge(
                 ApiContext::new()
-                    .handler(users::handler::get_me)
-                    .handler(auth::handler::logout)
+                    .merge(
+                        ApiContext::new()
+                            .tag("websocket")
+                            .handler(ws::handler::websocket),
+                    )
+                    .nest(
+                        "/users",
+                        ApiContext::new()
+                            .tag("users")
+                            .handler(users::handler::get_me),
+                    )
                     .layer(ServiceBuilder::new().layer(axum::middleware::from_fn(auth_required))),
             ),
     )

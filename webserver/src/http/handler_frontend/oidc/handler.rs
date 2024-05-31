@@ -36,9 +36,9 @@ use crate::models::OidcUser;
 use crate::models::User;
 
 /// Handler for OIDC's login endpoint
-#[get("/login")]
+#[get("/start-auth")]
 #[instrument(skip_all, ret, level = "debug")]
-pub async fn login(session: Session, client: Extension<CoreClient>) -> ApiResult<Redirect> {
+pub async fn start_auth(session: Session, client: Extension<CoreClient>) -> ApiResult<Redirect> {
     // Create a PKCE code verifier and SHA-256 encode it as a code challenge.
     let (pkce_code_challenge, pkce_code_verifier) = PkceCodeChallenge::new_random_sha256();
 
@@ -68,9 +68,9 @@ pub async fn login(session: Session, client: Extension<CoreClient>) -> ApiResult
     Ok(Redirect::temporary(auth_url.as_str()))
 }
 /// Handler for the OIDC endpoint the user will be redirected to from the OIDC provider
-#[get("/finish-login")]
+#[get("/finish-auth")]
 #[instrument(skip_all, ret, level = "debug")]
-pub async fn finish_login(
+pub async fn finish_auth(
     client: Extension<CoreClient>,
     Query(AuthRequest { code, state }): Query<AuthRequest>,
     session: Session,
