@@ -16,16 +16,12 @@ use openidconnect::TokenResponse;
 use rorm::insert;
 use rorm::prelude::ForeignModelByField;
 use rorm::query;
-use rorm::update;
 use rorm::FieldAccess;
 use rorm::Model;
 use swaggapi::get;
-use time::OffsetDateTime;
 use tower_sessions::Session;
 use tracing::debug;
-use tracing::error;
 use tracing::instrument;
-use tracing::trace;
 use uuid::Uuid;
 
 use crate::global::GLOBAL;
@@ -35,7 +31,6 @@ use crate::http::handler_frontend::oidc::schema::AuthRequest;
 use crate::http::handler_frontend::oidc::schema::AuthState;
 use crate::http::SESSION_OIDC_REQUEST;
 use crate::http::SESSION_USER;
-use crate::models;
 use crate::models::OidcUser;
 use crate::models::User;
 use crate::models::UserInsert;
@@ -134,19 +129,19 @@ pub async fn finish_auth(
         }
     }
 
-    trace!("Got claims: {claims:#?}");
+    debug!("Got claims: {claims:#?}");
 
     let Some(username) = claims.preferred_username().map(|x| x.to_string()) else {
         debug!("Missing claim: preferred_username");
         return Err(ApiError::Unauthenticated);
     };
 
-    let Some(claim) = claims.name() else {
+    let Some(claim_name) = claims.name() else {
         debug!("Missing claim: name");
         return Err(ApiError::Unauthenticated);
     };
 
-    let Some(display_name) = claim.get(None).map(|x| x.to_string()) else {
+    let Some(display_name) = claim_name.get(None).map(|x| x.to_string()) else {
         debug!("Missing localization for claim: name");
         return Err(ApiError::Unauthenticated);
     };
@@ -178,28 +173,6 @@ pub async fn finish_auth(
     };
 
     session.insert(SESSION_USER, *oidc_user.user.key()).await?;
-
-    session.insert("user", *oidc_user.user.key()).await?;
-    // We have to call save manually as the id is only populated after creating the session
-    session.save().await?;
-
-    let Some(id) = session.id() else {
-        error!("No ID in session");
-        return Err(ApiError::SessionCorrupt);
-    };
-    update!(&mut tx, models::Session)
-        .condition(models::Session::F.id.equals(id.to_string()))
-        .set(
-            models::Session::F.user,
-            Some(ForeignModelByField::Key(*oidc_user.user.key())),
-        )
-        .exec()
-        .await?;
-
-    update!(&mut tx, User)
-        .condition(User::F.uuid.equals(*oidc_user.user.key()))
-        .set(User::F.last_login, Some(OffsetDateTime::now_utc()))
-        .await?;
 
     tx.commit().await?;
 
