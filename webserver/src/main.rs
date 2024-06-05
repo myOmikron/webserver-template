@@ -20,6 +20,7 @@ use crate::global::ws::GlobalWs;
 use crate::global::GlobalEntities;
 use crate::global::GLOBAL;
 use crate::models::User;
+use crate::utils::hashing;
 
 mod cli;
 pub mod config;
@@ -134,6 +135,9 @@ async fn create_user(db: Database) -> Result<(), String> {
 
     #[allow(clippy::unwrap_used)]
     let password = rpassword::prompt_password("Enter password: ").unwrap();
+
+    #[allow(clippy::unwrap_used)]
+    let password = hashing::hash_pw(&password).unwrap();
 
     User::create_internal(username.to_string(), password, display_name, &db)
         .await
