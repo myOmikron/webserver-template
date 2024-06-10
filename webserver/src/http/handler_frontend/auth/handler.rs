@@ -1,6 +1,5 @@
 //! The handler for local authentication
 
-use axum::Json;
 use rorm::prelude::ForeignModelByField;
 use rorm::query;
 use rorm::update;
@@ -13,6 +12,7 @@ use tracing::instrument;
 use crate::global::GLOBAL;
 use crate::http::common::errors::ApiError;
 use crate::http::common::errors::ApiResult;
+use crate::http::extractors::json::Json;
 use crate::http::handler_frontend::auth::schema::LoginRequest;
 use crate::models;
 use crate::models::LocalUser;

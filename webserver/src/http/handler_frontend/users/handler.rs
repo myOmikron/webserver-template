@@ -1,10 +1,10 @@
 //! The handler for the users
 
-use axum::Json;
 use swaggapi::get;
 use tracing::instrument;
 
 use crate::http::common::errors::ApiResult;
+use crate::http::extractors::json::Json;
 use crate::http::extractors::session_user::SessionUser;
 use crate::http::handler_frontend::users::schema::FullUser;
 use crate::utils::schemars::SchemaDateTime;

@@ -8,7 +8,7 @@ authors = ["{{authors}}"]
 
 [dependencies]
 # webframework
-axum = { version = "~0.7", features = ["ws"] }
+axum = { version = "~0.7", features = ["ws", "macros", "tracing"] }
 # abstractions for requests
 tower = { version = "~0.4", features = ["full"] }
 # common middlewares

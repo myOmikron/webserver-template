@@ -4,6 +4,7 @@
 use std::fmt;
 use std::panic::Location;
 
+use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::response::Response;
@@ -41,6 +42,9 @@ pub enum ApiError {
     Unauthenticated,
     #[error("Bad request")]
     BadRequest,
+    #[error("Invalid json received: {0}")]
+    InvalidJson(#[from] JsonRejection),
+
     #[error("An internal server error occurred")]
     InternalServerError,
 }
@@ -67,18 +71,19 @@ where
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        const UNAUTHENTICATED: &str = "Unauthenticated";
-        const BAD_REQUEST: &str = "Bad Request";
-        const INTERNAL: &str = "Internal server error occurred";
-
         let (status_code, message) = match self {
-            ApiError::Unauthenticated => {
-                (ApiStatusCode::Unauthenticated, UNAUTHENTICATED.to_string())
+            ApiError::Unauthenticated => (
+                ApiStatusCode::Unauthenticated,
+                "Unauthenticated".to_string(),
+            ),
+            ApiError::InvalidJson(msg) => {
+                (ApiStatusCode::BadRequest, format!("Invalid json: {msg}"))
             }
-            ApiError::BadRequest => (ApiStatusCode::BadRequest, BAD_REQUEST.to_string()),
-            ApiError::InternalServerError => {
-                (ApiStatusCode::InternalServerError, INTERNAL.to_string())
-            }
+            ApiError::BadRequest => (ApiStatusCode::BadRequest, "Bad Request".to_string()),
+            ApiError::InternalServerError => (
+                ApiStatusCode::InternalServerError,
+                "Internal server error occurred".to_string(),
+            ),
         };
 
         let res = (
