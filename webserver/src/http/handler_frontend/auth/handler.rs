@@ -29,7 +29,7 @@ pub async fn login(
     let mut tx = GLOBAL.db.start_transaction().await?;
 
     let user = query!(&mut tx, LocalUser)
-        .condition(LocalUser::F.username.equals(username))
+        .condition(LocalUser::F.username.equals(username.into_inner()))
         .optional()
         .await?
         .ok_or(ApiError::Unauthenticated)?;
