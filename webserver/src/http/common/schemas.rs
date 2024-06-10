@@ -14,6 +14,7 @@ use serde_repr::Serialize_repr;
 pub enum ApiStatusCode {
     Unauthenticated = 1000,
     BadRequest = 1001,
+    InvalidJson = 1002,
 
     InternalServerError = 2000,
 }

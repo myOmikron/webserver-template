@@ -77,7 +77,7 @@ impl IntoResponse for ApiError {
                 "Unauthenticated".to_string(),
             ),
             ApiError::InvalidJson(msg) => {
-                (ApiStatusCode::BadRequest, format!("Invalid json: {msg}"))
+                (ApiStatusCode::InvalidJson, format!("Invalid json: {msg}"))
             }
             ApiError::BadRequest => (ApiStatusCode::BadRequest, "Bad Request".to_string()),
             ApiError::InternalServerError => (
