@@ -1,18 +1,22 @@
-//! Custom Json extractor
+//! Alternative for [`axum::Json`] which produces our [`ApiError`] in case of failure
 
 use axum::extract::FromRequest;
 use axum::response::IntoResponse;
 use schemars::JsonSchema;
+use serde::de::DeserializeOwned;
 use serde::Serialize;
 use swaggapi::as_responses::AsResponses;
+use swaggapi::handler_argument::HandlerArgument;
+use swaggapi::handler_argument::ShouldBeHandlerArgument;
 use swaggapi::internals::SchemaGenerator;
+use swaggapi::re_exports::openapiv3::Parameter;
+use swaggapi::re_exports::openapiv3::RequestBody;
 use swaggapi::re_exports::openapiv3::Responses;
 
 use crate::http::common::errors::ApiError;
 
-/// Custom extractor that is based on [axum::Json], but its errors
-/// will be converted to [ApiError]
-#[derive(FromRequest)]
+/// Alternative for [`axum::Json`] which produces our [`ApiError`] in case of failure
+#[derive(Copy, Clone, Default, Debug, FromRequest)]
 #[from_request(via(axum::Json), rejection(ApiError))]
 pub struct Json<T>(pub T);
 
@@ -20,12 +24,23 @@ pub struct Json<T>(pub T);
 impl<T: Serialize> IntoResponse for Json<T> {
     fn into_response(self) -> axum::response::Response {
         let Self(value) = self;
+        // TODO
         axum::Json(value).into_response()
     }
 }
 
 impl<T: Serialize + JsonSchema> AsResponses for Json<T> {
     fn responses(gen: &mut SchemaGenerator) -> Responses {
-        swaggapi::as_responses::ok_json::<T>(gen)
+        axum::Json::<T>::responses(gen)
+    }
+}
+
+impl<T> ShouldBeHandlerArgument for Json<T> {}
+impl<T: DeserializeOwned + JsonSchema> HandlerArgument for Json<T> {
+    fn request_body(gen: &mut SchemaGenerator) -> Option<RequestBody> {
+        axum::Json::<T>::request_body(gen)
+    }
+    fn parameters(gen: &mut SchemaGenerator, path: &[&str]) -> Vec<Parameter> {
+        axum::Json::<T>::parameters(gen, path)
     }
 }
