@@ -1,11 +1,15 @@
 //! A module to provide a "secure" string implementation
 //! that does not leak its content into tracing
 
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::ops::Deref;
 
+use schemars::gen::SchemaGenerator;
+use schemars::schema::Schema;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde::Deserializer;
 use serde::Serialize;
@@ -14,6 +18,13 @@ use serde::Serializer;
 /// A string with a custom debug implementation
 #[derive(Clone)]
 pub struct SecureString(String);
+
+impl SecureString {
+    /// Constructs a new secure string
+    pub const fn new(value: String) -> Self {
+        Self(value)
+    }
+}
 
 impl SecureString {
     /// Convert into inner string
@@ -37,6 +48,24 @@ impl<'de> Deserialize<'de> for SecureString {
         D: Deserializer<'de>,
     {
         Ok(Self(String::deserialize(deserializer)?))
+    }
+}
+
+impl JsonSchema for SecureString {
+    fn is_referenceable() -> bool {
+        <String as JsonSchema>::is_referenceable()
+    }
+
+    fn schema_name() -> String {
+        <String as JsonSchema>::schema_name()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        <String as JsonSchema>::schema_id()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        <String as JsonSchema>::json_schema(gen)
     }
 }
 
