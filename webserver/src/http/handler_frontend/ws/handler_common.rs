@@ -55,11 +55,14 @@ impl AsResponses for WsResponse {
 #[get("/ws")]
 pub async fn websocket(
     ws: WebSocketUpgrade,
-    SessionUser(user): SessionUser,
+    SessionUser { user, .. }: SessionUser,
     session: Session,
 ) -> WsResponse {
     let Some(id) = session.id() else {
-        return WsResponse(ApiError::InternalServerError.into_response());
+        return WsResponse(
+            ApiError::new_internal_server_error("Couldn't retrieve session".to_string())
+                .into_response(),
+        );
     };
 
     WsResponse(ws.on_upgrade(move |ws| async move {

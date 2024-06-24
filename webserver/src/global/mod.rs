@@ -4,6 +4,8 @@ use std::ops::Deref;
 use std::sync::OnceLock;
 
 use rorm::Database;
+use webauthn_rs::prelude::AttestationCaList;
+use webauthn_rs::Webauthn;
 
 use crate::global::ws::GlobalWs;
 
@@ -16,8 +18,20 @@ pub static GLOBAL: GlobalOnceCell<GlobalEntities> = GlobalOnceCell::new();
 pub struct GlobalEntities {
     /// The database
     pub db: Database,
-    /// The global websocket manager
+
+    /// The global websocket instance
     pub ws: GlobalWs,
+
+    /// Global WebAuthn state
+    pub webauthn: Webauthn,
+
+    /// List of attestation cas accepted when registering new webauthn keys with login privileges.
+    pub webauthn_attestation_ca_list: AttestationCaList,
+
+    /// The url this server is reachable under
+    ///
+    /// Used for generating links which should point back to {{project-name}}
+    pub origin: String,
 }
 
 /// Simple [`OnceLock`] which panics in case of error.

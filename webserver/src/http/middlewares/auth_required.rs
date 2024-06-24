@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::http::common::errors::ApiError;
 use crate::http::common::errors::ApiResult;
-use crate::http::SESSION_USER;
+use crate::http::session_keys::SESSION_USER;
 
 /// Checks the session if the [SESSION_USER] is present which will be the indicator
 /// if the user is logged-in

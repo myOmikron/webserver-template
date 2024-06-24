@@ -5,6 +5,7 @@ pub mod extractors;
 pub mod handler_frontend;
 pub mod middlewares;
 pub mod server;
+mod session_keys;
 
 /// The key for accessing the user in the session
 pub const SESSION_USER: &str = "user";

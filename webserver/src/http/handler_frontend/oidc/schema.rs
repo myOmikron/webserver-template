@@ -27,7 +27,7 @@ pub struct AuthRequest {
     pub state: SchemaString<CsrfToken>,
 }
 
-/// Data the [`super::handler::finish_auth`] handler will store in the user's session
+/// Data the [`super::handler_common::finish_login`] handler will store in the user's session
 #[derive(Serialize, Deserialize)]
 pub struct UserData {
     /// The oidc token

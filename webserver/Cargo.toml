@@ -18,6 +18,10 @@ tower-sessions = { version = "~0.12" }
 tower-sessions-rorm-store = { version = "~0.2" }
 # oidc
 openidconnect = { version = "~3", features = ["accept-rfc3339-timestamps"] }
+# webauthn
+webauthn-rs = { version = "~0.5", features = ["danger-allow-state-serialisation"] }
+# TOTP library
+totp-rs = { version = "~5" }
 
 # openapi and swagger ui
 swaggapi = { version = "*", features = ["axum"], git = "https://github.com/gammelalf/swaggapi" }
@@ -38,6 +42,7 @@ toml = { version = "~0.8" }
 uuid = { version = "~1", features = ["v4", "serde"] }
 # Time library
 time = { version = "~0.3", features = ["serde-well-known"] }
+base32 = { version = "~0.5" }
 
 # Errors
 thiserror = { version = "~1" }
@@ -52,6 +57,9 @@ rand = { version = "~0.8" }
 # ORM
 rorm = { version = "~0.6", default-features = false, features = ["tokio", "postgres-only", "cli", "uuid"] }
 
+# Helpful macros for enums
+strum = { version = "~0.26", features = ["derive"] }
+
 # Async runtime
 tokio = { version = ">=1.23.1", features = ["macros", "rt-multi-thread", "sync"] }
 # Signal hook for tokio
@@ -59,4 +67,3 @@ signal-hook = { version = "~0.3" }
 signal-hook-tokio = { version = "~0.3", features = ["futures-v0_3"] }
 futures = { version = "~0.3" }
 futures-util = { version = "~0.3" }
-log = "0.4.21"

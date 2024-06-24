@@ -18,10 +18,10 @@ use crate::http::common::errors::ApiError;
 /// Alternative for [`axum::Json`] which produces our [`ApiError`] in case of failure
 #[derive(Copy, Clone, Default, Debug, FromRequest)]
 #[from_request(via(axum::Json), rejection(ApiError))]
-pub struct Json<T>(pub T);
+pub struct ApiJson<T>(pub T);
 
 // We implement `IntoResponse` for our extractor so it can be used as a response
-impl<T: Serialize> IntoResponse for Json<T> {
+impl<T: Serialize> IntoResponse for ApiJson<T> {
     fn into_response(self) -> axum::response::Response {
         let Self(value) = self;
         // TODO
@@ -29,14 +29,14 @@ impl<T: Serialize> IntoResponse for Json<T> {
     }
 }
 
-impl<T: Serialize + JsonSchema> AsResponses for Json<T> {
+impl<T: Serialize + JsonSchema> AsResponses for ApiJson<T> {
     fn responses(gen: &mut SchemaGenerator) -> Responses {
         axum::Json::<T>::responses(gen)
     }
 }
 
-impl<T> ShouldBeHandlerArgument for Json<T> {}
-impl<T: DeserializeOwned + JsonSchema> HandlerArgument for Json<T> {
+impl<T> ShouldBeHandlerArgument for ApiJson<T> {}
+impl<T: DeserializeOwned + JsonSchema> HandlerArgument for ApiJson<T> {
     fn request_body(gen: &mut SchemaGenerator) -> Option<RequestBody> {
         axum::Json::<T>::request_body(gen)
     }

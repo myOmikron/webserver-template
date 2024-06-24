@@ -3,6 +3,7 @@
 #![warn(missing_docs, clippy::unwrap_used, clippy::expect_used)]
 
 use std::env;
+use std::fs;
 use std::io;
 use std::io::Write;
 
@@ -12,6 +13,7 @@ use rorm::config::DatabaseConfig;
 use rorm::Database;
 use rorm::DatabaseConfiguration;
 use tracing::instrument;
+use webauthn_rs::WebauthnBuilder;
 
 use crate::cli::Cli;
 use crate::cli::Command;
@@ -19,8 +21,11 @@ use crate::config::Config;
 use crate::global::ws::GlobalWs;
 use crate::global::GlobalEntities;
 use crate::global::GLOBAL;
-use crate::models::User;
-use crate::utils::hashing;
+use crate::http::handler_frontend::users::schema::UserLanguage;
+use crate::http::handler_frontend::users::schema::UserPermissions;
+use crate::models::UserInvite;
+use crate::utils::checked_string::CheckedString;
+use crate::utils::links::new_user_invite_link;
 
 mod cli;
 pub mod config;
@@ -38,8 +43,21 @@ async fn start(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
     let ws = GlobalWs::new();
 
+    let webauthn = WebauthnBuilder::new(&config.webauthn.id, &config.webauthn.origin)?
+        .rp_name(&config.webauthn.name)
+        .build()?;
+    let webauthn_attestation_ca_list = serde_json::from_reader(io::BufReader::new(
+        fs::File::open(&config.webauthn.attestation_ca_list)?,
+    ))?;
+
     // Initialize Globals
-    GLOBAL.init(GlobalEntities { db, ws });
+    GLOBAL.init(GlobalEntities {
+        db,
+        ws,
+        webauthn,
+        webauthn_attestation_ca_list,
+        origin: config.server.origin.trim_end_matches('/').to_string(),
+    });
 
     // Start the webserver
     http::server::run(config).await?;
@@ -94,58 +112,51 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             )
             .await?
         }
-        Command::CreateUser => {
-            // Connect to the database
-            let mut conf = DatabaseConfiguration::new(config.database.clone().into());
-            conf.disable_logging = Some(true);
-            let db = Database::connect(conf).await?;
-
-            create_user(db).await?;
+        Command::CreateAdminUser => {
+            create_admin_user(config).await?;
         }
     }
 
     Ok(())
 }
 
-/// Creates a new user
-///
-/// **Parameter**:
-/// - `db`: [Database]
-// Unwrap is okay, as no handling of errors is possible if we can't communicate with stdin / stdout
-async fn create_user(db: Database) -> Result<(), String> {
+/// Creates an invitation for an admin user
+async fn create_admin_user(config: Config) -> Result<(), Box<dyn std::error::Error>> {
+    // Connect to the database
+    let mut conf = DatabaseConfiguration::new(config.database.clone().into());
+    conf.disable_logging = Some(true);
+    let db = Database::connect(conf).await?;
+
     let stdin = io::stdin();
     let mut stdout = io::stdout();
 
-    let mut username = String::new();
+    let mut mail = String::new();
     let mut display_name = String::new();
 
-    print!("Enter a username: ");
-    #[allow(clippy::unwrap_used)]
-    stdout.flush().unwrap();
-    #[allow(clippy::unwrap_used)]
-    stdin.read_line(&mut username).unwrap();
-    let username = username.trim();
+    print!("Enter a mail: ");
+    stdout.flush()?;
+    stdin.read_line(&mut mail)?;
+    let mail = mail.trim();
 
     print!("Enter a display name: ");
-    #[allow(clippy::unwrap_used)]
-    stdout.flush().unwrap();
-    #[allow(clippy::unwrap_used)]
-    stdin.read_line(&mut display_name).unwrap();
+    stdout.flush()?;
+    stdin.read_line(&mut display_name)?;
     let display_name = display_name.trim().to_string();
 
-    #[allow(clippy::unwrap_used)]
-    let password = rpassword::prompt_password("Enter password: ").unwrap();
+    let invite = UserInvite::create(
+        &db,
+        CheckedString::new(mail.to_string()).map_err(|e| format!("Invalid mail: {e}"))?,
+        CheckedString::new(display_name).map_err(|e| format!("Invalid display_name: {e}"))?,
+        UserLanguage::EN,
+        UserPermissions::Administrator,
+    )
+    .await?;
 
-    #[allow(clippy::unwrap_used)]
-    let password = hashing::hash_pw(&password).unwrap();
-
-    User::create_internal(username.to_string(), password, display_name, &db)
-        .await
-        .map_err(|e| format!("Failed to create user: {e}"))?;
-
-    println!("Created user {username}");
+    println!(
+        "Created invitation for {mail}, please go to {}",
+        new_user_invite_link(config.server.origin.trim_end_matches('/'), invite.uuid)
+    );
 
     db.close().await;
-
     Ok(())
 }
