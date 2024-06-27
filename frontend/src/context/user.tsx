@@ -136,13 +136,7 @@ export class UserProvider extends React.Component<
             case "loading":
                 return <div>Loading ..</div>;
             case "unauthenticated":
-                return (
-                    <Login
-                        onLogin={() => {
-                            this.fetchUser();
-                        }}
-                    />
-                );
+                return <Login onLogin={() => this.fetchUser()} />;
             default:
                 return (
                     <USER_CONTEXT.Provider

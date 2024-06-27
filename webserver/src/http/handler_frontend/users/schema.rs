@@ -109,7 +109,7 @@ pub struct FullUser {
     pub preferred_lang: UserLanguage,
     /// The user's permissions
     ///
-    /// Combination of a `role` and role specific `groups`
+    /// The `role`s of a user
     pub permissions: UserPermissions,
 }
 
@@ -126,7 +126,7 @@ pub enum UserLanguage {
 
 /// The user's permissions
 ///
-/// Combination of a `role` and role specific `groups`
+/// The `role`s of a user
 #[derive(PartialEq, Debug, Clone, Deserialize, Serialize, JsonSchema)]
 #[serde(tag = "role")]
 pub enum UserPermissions {

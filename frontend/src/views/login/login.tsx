@@ -1,6 +1,8 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { Api } from "../../api/api";
+import Form from "../../components/form";
+import { useForm } from "@tanstack/react-form";
 
 /**
  * The properties of the login view
@@ -15,28 +17,33 @@ type LoginProps = {
  */
 export default function Login(props: LoginProps) {
     const { onLogin } = props;
-    const [username, setUsername] = React.useState<string>("");
-    const [password, setPassword] = React.useState<string>("");
 
-    const performLogin = () => {
-        Api.auth.login(username, password).then((res) =>
-            res.match(
-                () => {
-                    toast.success("Signed in");
-                    onLogin();
-                },
+    const loginForm = useForm({
+        defaultValues: {
+            username: "",
+            password: "",
+        },
+        onSubmit: async ({ value }) => {
+            (await Api.auth.login(value.username, value.password)).match(
+                () => onLogin(),
                 (err) => toast.error(err.message),
-            ),
-        );
-    };
+            );
+        },
+    });
 
     return (
-        <form
-            method="post"
-            onSubmit={(e) => {
-                e.preventDefault();
-                performLogin();
-            }}
-        ></form>
+        <Form onSubmit={loginForm.handleSubmit}>
+            <loginForm.Field
+                name={"username"}
+                children={(field) => (
+                    <input
+                        name={field.name}
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                )}
+            />
+            <button type={"submit"}>Login</button>
+        </Form>
     );
 }
